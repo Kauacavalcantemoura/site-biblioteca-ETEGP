@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema Biblioteca - ETEGPC</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- TELA DE LOGIN OBRIGATÓRIA -->
+    <div id="telaLogin" class="login-overlay">
+        <div class="login-box" id="caixaLogin">
+            <div class="logo-area">
+                <img src="images-removebg-preview.png" alt="LOGO ETEGPC" class="logo">
+            </div>
+            <h2>Acesso Restrito - Biblioteca</h2>
+            <p>Insira as credenciais para gerenciar o sistema.</p>
+            <form id="formLogin">
+                <input type="text" id="usuario" placeholder="Usuário" required>
+                <input type="password" id="senha" placeholder="Senha" required>
+                <button type="submit" class="btn-login">Entrar no Sistema</button>
+                <button type="button" onclick="mostrarTrocarSenha()" class="btn-link">Alterar Senha</button>
+            </form>
+            <div id="erroLogin" class="msg-erro"></div>
+        </div>
+
+        <div class="login-box" id="caixaTrocarSenha" style="display: none;">
+            <h2>Alterar Senha do Sistema</h2>
+            <p>Insira a senha atual para criar uma nova.</p>
+            <form id="formTrocarSenha">
+                <input type="password" id="senhaAtual" placeholder="Senha Atual" required>
+                <input type="password" id="senhaNova" placeholder="Nova Senha" required>
+                <button type="submit" class="btn-login">Salvar Nova Senha</button>
+                <button type="button" onclick="mostrarLoginOriginal()" class="btn-link">Voltar ao Login</button>
+            </form>
+            <div id="msgSenha" class="msg-erro"></div>
+        </div>
+    </div>
+
+    <!-- CONTEÚDO DO SITE (SÓ APARECE APÓS LOGIN) -->
+    <div id="conteudoSistema" style="display: none;">
+        <header>
+            <div class="logo-area">
+                <img src="images.png" alt="LOGO ETEGPC" class="logo">
+            </div>
+            <h1>Escola Técnica Estadual Ginásio Pernambucano</h1>
+            <nav>
+                <button onclick="switchTab('emprestimos')">Empréstimos</button>
+                <button onclick="switchTab('projetos')">Projetos</button>
+                <button onclick="switchTab('series')">Séries / Salas</button>
+                <button onclick="switchTab('mural')">Mural de Avisos</button>
+                <button onclick="fazerLogout()" class="btn-logout">Sair 🚪</button>
+            </nav>
+        </header>
+
+        <!-- SEÇÃO DISCRETA DE IMPORTAÇÃO (FICA NO TOPO, SÓ ABRE SE CLICAR) -->
+        <div class="importador-discreto">
+            <button type="button" onclick="togglePainelImportar()" class="btn-import-toggle">⚡ Importar Dados em Massa (Excel)</button>
+            <div id="painelImportar" class="painel-importar-conteudo" style="display: none;">
+                <h4>Painel de Importação Rápida via Copiar/Colar</h4>
+                <p>Selecione as linhas no Excel, copie (Ctrl+C) e cole (Ctrl+V) abaixo. O sistema aceita dados de empréstimos ou projetos.</p>
+                
+                <div style="margin: 10px 0; font-size: 13px;">
+                    <label><input type="radio" name="tipoImportacao" value="emprestimo" checked> Importar como <b>Empréstimo Comum</b></label>
+                    <label style="margin-left: 20px;"><input type="radio" name="tipoImportacao" value="projeto"> Importar como <b>Projeto Escolar</b></label>
+                </div>
+                
+                <input type="text" id="p_nome_importacao" placeholder="Se escolheu Projeto, digite o Nome do Projeto aqui..." style="display:none; margin-bottom: 10px;">
+
+                <textarea id="inputColarExcel" placeholder="Cole as linhas do Excel aqui..."></textarea>
+
+                    <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px;">
+                        <label style="font-size: 13px; font-weight: bold; color: var(--azul);">Ou selecione o arquivo (.xlsx ou .csv):</label>
+                        <input type="file" id="arquivoExcel" accept=".xlsx, .xls, .csv" style="margin-top: 5px; padding: 5px;">
+                    </div>
+
+                <button onclick="importarTextoColado()" class="btn-save" style="background:#28a745;">Processar Importação</button>
+        </div>
+
+        <main>
+            <!-- ABA DE EMPRÉSTIMOS -->
+            <section id="tab-emprestimos" class="tab-content active">
+                <h2>Registro de Empréstimos</h2>
+                <form id="formEmprestimo">
+                    <select id="turma" required>
+                        <option value="">Selecione a Turma</option>
+                        <option value="1ADS">1º A DS</option><option value="1BDS">1º B DS</option>
+                        <option value="1AMM">1º A MM</option><option value="1BMM">1º B MM</option>
+                        <option value="2ADS">2º A DS</option><option value="2BDS">2º B DS</option>
+                        <option value="2AMM">2º A MM</option><option value="2BMM">2º B MM</option>
+                        <option value="3ADS">3º A DS</option><option value="3BDS">3º B DS</option>
+                        <option value="3AMM">3º A MM</option><option value="3BMM">3º B MM</option>
+                    </select>
+                    <input type="text" id="aluno" placeholder="Nome do Aluno" required>
+                    <input type="text" id="livro" placeholder="Nome do Livro" required>
+                    <div class="date-group">
+                        <label>Retirada: <input type="date" id="dataPegou" required></label>
+                        <label>Devolução: <input type="date" id="dataDevolver" required></label>
+                    </div>
+                    <button type="submit" class="btn-save">Salvar Empréstimo</button>
+                </form>
+
+                <div class="search-container">
+                    <h3>Monitorar Empréstimos</h3>
+                    <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                        <input type="text" id="buscaEmprestimos" placeholder="Pesquisar por Aluno, Livro ou Turma..." oninput="carregarTabelas()">
+                        <button type="button" onclick="alternarLayoutGlobal()" class="btn-layout">🔄 Mudar Layout (Card/Tabela)</button>
+                    </div>
+                </div>
+                <div id="listaEmprestimos" class="list-display layout-cards"></div>
+            </section>
+
+            <!-- ABA DE PROJETOS -->
+            <section id="tab-projetos" class="tab-content">
+                <h2>Projetos da Escola</h2>
+                <form id="formProjeto">
+                    <input type="text" id="p_aluno" placeholder="Nome do Aluno" required>
+                    <select id="p_turma" required>
+                        <option value="">Selecione a Turma do Projeto</option>
+                        <option value="1ADS">1º A DS</option><option value="1BDS">1º B DS</option>
+                        <option value="1AMM">1º A MM</option><option value="1BMM">1º B MM</option>
+                        <option value="2ADS">2º A DS</option><option value="2BDS">2º B DS</option>
+                        <option value="2AMM">2º A MM</option><option value="2BMM">2º B MM</option>
+                        <option value="3ADS">3º A DS</option><option value="3BDS">3º B DS</option>
+                        <option value="3AMM">3º A MM</option><option value="3BMM">3º B MM</option>
+                    </select>
+                    <input type="text" id="p_livro" placeholder="Nome do Livro" required>
+                    <input type="text" id="p_nome" placeholder="Nome do Projeto" required>
+                    <div class="date-group">
+                        <label>Início: <input type="date" id="p_dataPegou" required></label>
+                        <label>Fim: <input type="date" id="p_dataDevolver" required></label>
+                    </div>
+                    <button type="submit" class="btn-save">Salvar no Projeto</button>
+                </form>
+
+                <div class="search-container">
+                    <h3>Monitorar Projetos</h3>
+                    <input type="text" id="buscaProjetos" placeholder="Pesquisar por Aluno, Livro, Turma ou Projeto..." oninput="carregarTabelas()">
+                </div>
+                <div id="listaProjetos" class="list-display"></div>
+            </section>
+
+            <!-- ABA DE FILTRAGEM POR SÉRIES / SALAS -->
+            <section id="tab-series" class="tab-content">
+                <h2>Consulta por Série Específica</h2>
+                <div class="search-container" style="max-width: 100%; margin-bottom: 20px;">
+                    <label style="font-weight: bold; color: var(--azul);">Escolha a Sala que deseja Monitorar:</label>
+                    <select id="filtroAbasSeries" onchange="carregarTabelas()" style="border: 2px solid var(--azul); font-size: 16px;">
+                        <option value="TODAS">-- Selecione uma Série ou veja Todas --</option>
+                        <option value="1ADS">1º A DS</option><option value="1BDS">1º B DS</option>
+                        <option value="1AMM">1º A MM</option><option value="1BMM">1º B MM</option>
+                        <option value="2ADS">2º A DS</option><option value="2BDS">2º B DS</option>
+                        <option value="2AMM">2º A MM</option><option value="2BMM">2º B MM</option>
+                        <option value="3ADS">3º A DS</option><option value="3BDS">3º B DS</option>
+                        <option value="3AMM">3º A MM</option><option value="3BMM">3º B MM</option>
+                    </select>
+                </div>
+                
+                <h3>Empréstimos Ativos na Turma</h3>
+                <div id="listaSeriesEmprestimos" class="list-display"></div>
+                
+                <h3 style="margin-top: 40px;">Projetos Ativos na Turma</h3>
+                <div id="listaSeriesProjetos" class="list-display"></div>
+            </section>
+
+            <!-- ABA: MURAL DE OBSERVAÇÕES EM BLOCOS -->
+            <section id="tab-mural" class="tab-content">
+                <h2>Mural de Observações e Registros</h2>
+                <form id="formMural">
+                    <input type="text" id="m_titulo" placeholder="Nome do Aluno / Assunto Importante" required>
+                    <input type="date" id="m_data" required>
+                    <textarea id="m_comentario" placeholder="Escreva a anotação detalhada aqui..." required></textarea>
+                    <button type="submit" class="btn-save">Fixar Bloco de Nota</button>
+                </form>
+
+                <h3 style="text-align: center; margin-top: 30px;">Blocos de Avisos Fixados</h3>
+                <div id="quadroMuralAvisos" class="mural-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- JANELA FLUTUANTE DE VER DETALHES (MODAL ZOOM) -->
+    <div id="modalZoom" class="zoom-overlay" style="display: none;">
+        <div class="zoom-box">
+            <span class="zoom-fechar" onclick="fecharZoom()">&times; Fechar</span>
+            <div id="zoomConteudo"></div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
